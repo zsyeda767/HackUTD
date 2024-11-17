@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Banking App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6fa;
+            color: #333;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome {
+            font-size: 22px;
+            font-weight: bold;
+            color: #4a90e2;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .account-card {
+            background-color: #eef6ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-info {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .account-balance {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #4a90e2;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background-color: #357ab7;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .input-field {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .cta-banner {
+            background-color: #ffefc4;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .response {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>Banking App</header>
+    <div class="container">
+        <div class="welcome">Hello, Name</div>
+
+        <!-- Account Card -->
+        <div class="account-card">
+            <div class="account-info">
+                <div>Credify</div>
+                <div class="account-number">Adv SafeBalance Banking - 1877</div>
+            </div>
+            <div class="account-balance" id="balance">$111,111.11</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <button class="action-btn" id="checkBalance">Check Balance</button>
+
+        <div class="input-group">
+            <label class="input-label" for="addAmount">Amount to Add:</label>
+            <input type="number" class="input-field" id="addAmount" placeholder="Enter amount">
+        </div>
+        <button class="action-btn" id="addMoney">Add Money</button>
+
+        <div class="input-group">
+            <label class="input-label" for="transactionAmount">Transaction Amount:</label>
+            <input type="number" class="input-field" id="transactionAmount" placeholder="Enter amount">
+        </div>
+        <button class="action-btn" id="makeTransaction">Make Transaction</button>
+
+        <!-- Response Display -->
+        <div class="response" id="response"></div>
+
+        <!-- CTA Banner -->
+        <div class="cta-banner">
+            <strong>Looking to Invest?</strong>
+            <p>Open a savings account and start saving for your future today!</p>
+        </div>
+    </div>
+
+    <footer>© 2024 Banking App. All rights reserved.</footer>
+
+    <script>
+        const apiBaseUrl = "http://127.0.0.1:5000"; // Flask server URL
+
+        // Update balance in UI
+        function updateBalanceUI(newBalance) {
+            document.getElementById('balance').innerText = `$${newBalance.toFixed(2)}`;
+        }
+
+        // Fetch and display balance
+        document.getElementById('checkBalance').addEventListener('click', async () => {
+            const response = await fetch(`${apiBaseUrl}/balance?user_id=user1`);
+            const data = await response.json();
+            if (data.balance) {
+                updateBalanceUI(data.balance);
+                document.getElementById('response').innerText = "Balance fetched successfully.";
+            } else {
+                document.getElementById('response').innerText = data.error || "Error fetching balance.";
+            }
+        });
+
+        // Add money to account
+        document.getElementById('addMoney').addEventListener('click', async () => {
+            const amount = parseFloat(document.getElementById('addAmount').value);
+            if (!amount || amount <= 0) {
+                document.getElementById('response').innerText = "Please enter a valid amount.";
+                return;
+            }
+
+            const response = await fetch(`${apiBaseUrl}/add_money`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: 'user1', amount })
+            });
+
+            const data = await response.json();
+            if (data.new_balance) {
+                updateBalanceUI(data.new_balance);
+                document.getElementById('response').innerText = data.message;
+            } else {
+                document.getElementById('response').innerText = data.error || "Error adding money.";
+            }
+        });
+
+        // Make a transaction
+        document.getElementById('makeTransaction').addEventListener('click', async () => {
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            if (!amount || amount <= 0) {
+                document.getElementById('response').innerText = "Please enter a valid transaction amount.";
+                return;
+            }
+
+            const response = await fetch(`${apiBaseUrl}/make_transaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: 'user1', amount })
+            });
+
+            const data = await response.json();
+            if (data.new_balance) {
+                updateBalanceUI(data.new_balance);
+                document.getElementById('response').innerText = data.message;
+            } else {
+                document.getElementById('response').innerText = data.error || "Error processing transaction.";
+            }
+        });
+    </script>
+</body>
+</html>
+
+
